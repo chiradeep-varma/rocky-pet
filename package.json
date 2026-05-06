@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "publisher": "chiradeep-varma",
   "license": "MIT",
+  "icon": "media/icon.png",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other", "Visualization"],
   "keywords": ["pet", "rocky", "project hail mary", "fun", "companion"],
