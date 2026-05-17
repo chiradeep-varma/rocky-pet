@@ -251,13 +251,52 @@
 
     speaking = true;
 
-    // Anchor bubble near Rocky's current world position
+    // Anchor bubble above/below/beside Rocky depending on which surface he's on,
+    // then clamp so it never escapes the viewport.
     const { x, y } = surfacePos(surface, along);
-    const drawLeft = Math.max(4, Math.min(canvas.width - 200, x - 10));
-    const bottomGap = canvas.height - y + 6;
-    dialogueEl.style.left   = `${drawLeft}px`;
-    dialogueEl.style.bottom = `${Math.max(4, bottomGap)}px`;
-    dialogueEl.style.display = 'block';
+    const cx = x + DSP / 2; // Rocky's center x
+    const cy = y + DSP / 2; // Rocky's center y
+
+    const BUBBLE_W   = 188; // max-width + borders
+    const GAP        = 10;  // gap between Rocky and bubble edge
+    const EDGE_PAD   = 4;   // min distance from viewport edge
+
+    // Reset tail classes
+    dialogueEl.classList.remove('tail-down', 'tail-up', 'tail-right', 'tail-left');
+
+    let left, top;
+    if (surface === 'floor') {
+      // Above Rocky, tail points down
+      dialogueEl.classList.add('tail-down');
+      left = cx - BUBBLE_W / 2;
+      top  = y - GAP; // will be nudged after height measurement
+      dialogueEl.style.display = 'block';
+      dialogueEl.style.left = `${Math.max(EDGE_PAD, Math.min(canvas.width - BUBBLE_W - EDGE_PAD, left))}px`;
+      dialogueEl.style.top  = '';
+      dialogueEl.style.bottom = `${Math.max(EDGE_PAD, canvas.height - y + GAP)}px`;
+    } else if (surface === 'ceiling') {
+      // Below Rocky (he's upside-down), tail points up
+      dialogueEl.classList.add('tail-up');
+      left = cx - BUBBLE_W / 2;
+      dialogueEl.style.display = 'block';
+      dialogueEl.style.left   = `${Math.max(EDGE_PAD, Math.min(canvas.width - BUBBLE_W - EDGE_PAD, left))}px`;
+      dialogueEl.style.bottom = '';
+      dialogueEl.style.top    = `${Math.max(EDGE_PAD, y + DSP + GAP)}px`;
+    } else if (surface === 'leftWall') {
+      // To the right of Rocky, tail points left
+      dialogueEl.classList.add('tail-left');
+      dialogueEl.style.display = 'block';
+      dialogueEl.style.left   = `${Math.max(EDGE_PAD, x + DSP + GAP)}px`;
+      dialogueEl.style.bottom = '';
+      dialogueEl.style.top    = `${Math.max(EDGE_PAD, Math.min(canvas.height - 80, cy - 30))}px`;
+    } else {
+      // rightWall — to the left of Rocky, tail points right
+      dialogueEl.classList.add('tail-right');
+      dialogueEl.style.display = 'block';
+      dialogueEl.style.left   = `${Math.max(EDGE_PAD, x - BUBBLE_W - GAP)}px`;
+      dialogueEl.style.bottom = '';
+      dialogueEl.style.top    = `${Math.max(EDGE_PAD, Math.min(canvas.height - 80, cy - 30))}px`;
+    }
     requestAnimationFrame(() => { dialogueEl.classList.add('visible'); });
 
     dText.textContent = '';

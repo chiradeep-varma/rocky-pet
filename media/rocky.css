@@ -54,14 +54,39 @@ body {
   word-break: break-word;
 }
 
-/* Speech tail triangle */
+/* Speech tail — direction set via class on #dialogue */
 #d-text::after {
   content: '';
   position: absolute;
-  bottom: -8px;
-  left: 20px;
-  border: 4px solid transparent;
+  border: 5px solid transparent;
+}
+
+/* Default / floor: tail points down from bottom of bubble */
+#dialogue.tail-down #d-text::after {
+  bottom: -10px;
+  left: calc(50% - 5px);
   border-top-color: #7ec8a0;
+}
+
+/* Ceiling (upside-down Rocky): tail points up from top of bubble */
+#dialogue.tail-up #d-text::after {
+  top: -10px;
+  left: calc(50% - 5px);
+  border-bottom-color: #7ec8a0;
+}
+
+/* Left wall: tail points left from left edge of bubble */
+#dialogue.tail-left #d-text::after {
+  left: -10px;
+  top: calc(50% - 5px);
+  border-right-color: #7ec8a0;
+}
+
+/* Right wall: tail points right from right edge of bubble */
+#dialogue.tail-right #d-text::after {
+  right: -10px;
+  top: calc(50% - 5px);
+  border-left-color: #7ec8a0;
 }
 
 /* Zzz particles */
