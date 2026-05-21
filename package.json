@@ -2,7 +2,7 @@
   "name": "rocky-pet",
   "displayName": "Rocky",
   "description": "Rocky from Project Hail Mary lives in your VS Code panel. He climbs the walls and ceiling, naps, gets excited, and shouts Rocky-isms while you code.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "chiradeep-varma",
   "license": "MIT",
   "icon": "media/icon.png",

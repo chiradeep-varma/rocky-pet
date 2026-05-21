@@ -45,13 +45,15 @@ body {
   border: 2px solid #7ec8a0;
   border-radius: 6px;
   padding: 6px 10px;
-  max-width: 180px;
+  width: var(--bubble-w, 180px);
+  max-width: var(--bubble-w, 180px);
   font-family: 'Courier New', Courier, monospace;
-  font-size: 10px;
+  font-size: var(--bubble-font, 10px);
   color: #d4f5e2;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+  box-sizing: border-box;
 }
 
 /* Speech tail — direction set via class on #dialogue */

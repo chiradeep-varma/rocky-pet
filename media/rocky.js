@@ -252,51 +252,72 @@
     speaking = true;
 
     // Anchor bubble above/below/beside Rocky depending on which surface he's on,
-    // then clamp so it never escapes the viewport.
+    // then clamp so it never escapes the viewport. Bubble size scales with stage.
     const { x, y } = surfacePos(surface, along);
     const cx = x + DSP / 2; // Rocky's center x
     const cy = y + DSP / 2; // Rocky's center y
 
-    const BUBBLE_W   = 188; // max-width + borders
-    const GAP        = 10;  // gap between Rocky and bubble edge
-    const EDGE_PAD   = 4;   // min distance from viewport edge
+    const EDGE_PAD = 4;
+    const GAP      = Math.max(6, Math.round(DSP * 0.08));
+
+    // Scale bubble width to roughly 60% of canvas width, clamped to sane bounds.
+    // Subtract padding so it always fits with room to spare on both sides.
+    const maxAllowedW = Math.max(80, canvas.width - EDGE_PAD * 2);
+    const BUBBLE_W = Math.max(80, Math.min(220, Math.min(maxAllowedW, Math.round(canvas.width * 0.6))));
+
+    // Scale font with bubble width (and therefore stage)
+    const fontPx = Math.max(8, Math.min(12, Math.round(BUBBLE_W / 18)));
+    dialogueEl.style.setProperty('--bubble-w',   `${BUBBLE_W}px`);
+    dialogueEl.style.setProperty('--bubble-font', `${fontPx}px`);
 
     // Reset tail classes
     dialogueEl.classList.remove('tail-down', 'tail-up', 'tail-right', 'tail-left');
+    dialogueEl.style.display = 'block';
+    dialogueEl.style.left = '';
+    dialogueEl.style.top = '';
+    dialogueEl.style.bottom = '';
 
-    let left, top;
     if (surface === 'floor') {
-      // Above Rocky, tail points down
       dialogueEl.classList.add('tail-down');
-      left = cx - BUBBLE_W / 2;
-      top  = y - GAP; // will be nudged after height measurement
-      dialogueEl.style.display = 'block';
-      dialogueEl.style.left = `${Math.max(EDGE_PAD, Math.min(canvas.width - BUBBLE_W - EDGE_PAD, left))}px`;
-      dialogueEl.style.top  = '';
+      const left = cx - BUBBLE_W / 2;
+      dialogueEl.style.left   = `${Math.max(EDGE_PAD, Math.min(canvas.width - BUBBLE_W - EDGE_PAD, left))}px`;
       dialogueEl.style.bottom = `${Math.max(EDGE_PAD, canvas.height - y + GAP)}px`;
     } else if (surface === 'ceiling') {
-      // Below Rocky (he's upside-down), tail points up
       dialogueEl.classList.add('tail-up');
-      left = cx - BUBBLE_W / 2;
-      dialogueEl.style.display = 'block';
-      dialogueEl.style.left   = `${Math.max(EDGE_PAD, Math.min(canvas.width - BUBBLE_W - EDGE_PAD, left))}px`;
-      dialogueEl.style.bottom = '';
-      dialogueEl.style.top    = `${Math.max(EDGE_PAD, y + DSP + GAP)}px`;
+      const left = cx - BUBBLE_W / 2;
+      dialogueEl.style.left = `${Math.max(EDGE_PAD, Math.min(canvas.width - BUBBLE_W - EDGE_PAD, left))}px`;
+      dialogueEl.style.top  = `${Math.max(EDGE_PAD, y + DSP + GAP)}px`;
     } else if (surface === 'leftWall') {
-      // To the right of Rocky, tail points left
       dialogueEl.classList.add('tail-left');
-      dialogueEl.style.display = 'block';
-      dialogueEl.style.left   = `${Math.max(EDGE_PAD, x + DSP + GAP)}px`;
-      dialogueEl.style.bottom = '';
-      dialogueEl.style.top    = `${Math.max(EDGE_PAD, Math.min(canvas.height - 80, cy - 30))}px`;
+      dialogueEl.style.left = `${Math.max(EDGE_PAD, Math.min(canvas.width - BUBBLE_W - EDGE_PAD, x + DSP + GAP))}px`;
+      // Vertical position set after we know the bubble height (below)
     } else {
-      // rightWall — to the left of Rocky, tail points right
+      // rightWall
       dialogueEl.classList.add('tail-right');
-      dialogueEl.style.display = 'block';
-      dialogueEl.style.left   = `${Math.max(EDGE_PAD, x - BUBBLE_W - GAP)}px`;
-      dialogueEl.style.bottom = '';
-      dialogueEl.style.top    = `${Math.max(EDGE_PAD, Math.min(canvas.height - 80, cy - 30))}px`;
+      dialogueEl.style.left = `${Math.max(EDGE_PAD, x - BUBBLE_W - GAP)}px`;
     }
+
+    // Measure rendered bubble height to clamp vertical position correctly.
+    // Set initial content so the measurement reflects realistic height.
+    dText.textContent = text || ' ';
+    const bubbleH = dialogueEl.offsetHeight || 40;
+
+    if (surface === 'leftWall' || surface === 'rightWall') {
+      const top = cy - bubbleH / 2;
+      dialogueEl.style.top = `${Math.max(EDGE_PAD, Math.min(canvas.height - bubbleH - EDGE_PAD, top))}px`;
+    } else if (surface === 'floor') {
+      // Ensure the bubble's top doesn't go above the viewport top
+      const topIfDrawn = canvas.height - parseFloat(dialogueEl.style.bottom) - bubbleH;
+      if (topIfDrawn < EDGE_PAD) {
+        dialogueEl.style.bottom = `${Math.max(EDGE_PAD, canvas.height - bubbleH - EDGE_PAD)}px`;
+      }
+    } else if (surface === 'ceiling') {
+      const topVal = parseFloat(dialogueEl.style.top);
+      if (topVal + bubbleH + EDGE_PAD > canvas.height) {
+        dialogueEl.style.top = `${Math.max(EDGE_PAD, canvas.height - bubbleH - EDGE_PAD)}px`;
+      }
+    }
+
     requestAnimationFrame(() => { dialogueEl.classList.add('visible'); });
 
     dText.textContent = '';
